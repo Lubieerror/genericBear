@@ -199,7 +199,10 @@ int main(int32_t agrc, char** agrv) {
     // Dump best.
     // puts("Stage 3");
     cross();
-    dump_best();    
+    dump_best();
+
+    if(step > 5500)
+      break;
 
     ///break;
   }
