@@ -20,17 +20,17 @@
 
 */
 
-const sizr_t dumpingSpeed = 50; //50 is fine
 
-const size_t W = 256;
-const size_t H = 256;
-const std::string pName = "sad.raw";
+const size_t W = 500;
+const size_t H = 500;
+const char* pName = "bear.data";
+size_t dumpingSpeed = 10; //50 is fine
 //sad: 256, 256
 //bear: 500, 500
 //small-bear: 350, 350 (70% z 500)
 const size_t SZ = W * H;
 
-uint8_t monalisa[SZ];
+uint8_t bearpic[SZ];
 
 const size_t SPEC_CNT = 300;
 const size_t BEST_CNT = 2;
@@ -63,7 +63,8 @@ void dump_best() {
   printf("   Dumping step %i\r", step); fflush(stdout);
   for (size_t i = 0; i < 1; i++) {
     char fname[256] = {0};
-    sprintf(fname, "out\\bearst_%.6i_%.2i.raw", step, i);
+    sprintf(fname, "out//%s-generated_%.6zi_%.2zi.data", pName, step, i);
+    // sprintf(fname, "out\\bearst_%.6zi_%.2zi.raw", step, i);
     FILE *f = fopen(fname, "wb");
     fwrite(specimen[best[i]], SZ, 1, f);
     fclose(f);
@@ -92,7 +93,7 @@ double score_me(uint8_t *sp) {
   for (size_t j = 0; j < H; j++) {
     for (size_t i = 0; i < W; i++) {
       double a = sp[j * W + i];
-      double b = monalisa[j * W + i];
+      double b = bearpic[j * W + i];
       sc += (a - b) * (a - b);
     }
   }
@@ -146,20 +147,45 @@ void cross() {
   }
 }
 
-int main(void) {
+int main(int32_t agrc, char** agrv) {
   srand(time(NULL));
 
+  if(agrc > 1) {
+    pName = agrv[1];
+    printf("Setting filename to: %s\n", pName);
+    if(agrv[2] != NULL) {
+      dumpingSpeed = (size_t)agrv[2];
+      printf("Setting dumpingSpeed to %zi\n", dumpingSpeed);
+    }
+    // return 3;
+  }
 
-  if(!filexists(pName.c_str())) {
-    puts("Błąd! Plik źródłowy nie istnieje x_x");
+  printf("Checking if filename %s exists...\r", pName);
+  fflush(stdout);
+  if(!filexists(pName)) {
+    printf("Checking if filename %s exists... ERROR!\n", pName);
+    puts("Source file don't exists x_x\n");
     return -777;
   }
+  printf("Checking if filename %s exists... OK\n", pName);
+
+  printf("Checking if directory exists...\r");
+  fflush(stdout);
   if(!direxists("out")) {
+    printf("Checking if directory exists... CREATING!\n");
+    #if defined(_WIN32)
     mkdir("out");
+    #else 
+    mkdir("out", 0777);
+    #endif
+  } else {
+    printf("Checking if directory exists... OK\n");
   }
 
-  FILE *f = fopen(pName.c_str(), "rb");
-  fread(monalisa, SZ, 1, f);
+  printf("\n\n");
+
+  FILE *f = fopen(pName, "rb");
+  fread(bearpic, SZ, 1, f);
   fclose(f);
 
   for (;; step++) {
